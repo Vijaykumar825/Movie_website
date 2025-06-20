@@ -1,0 +1,165 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base Layer */
+@layer base {
+  body {
+    font-family: "DM Sans", sans-serif;
+    font-optical-sizing: auto;
+    background: #030014;
+  }
+
+  h1 {
+    @apply mx-auto max-w-4xl text-center text-5xl font-bold leading-tight tracking-[-1%] text-white sm:text-[64px] sm:leading-[76px];
+  }
+
+  h2 {
+    @apply text-2xl font-bold text-white sm:text-3xl;
+  }
+
+  main {
+    @apply min-h-screen relative bg-[#030014];
+  }
+
+  header {
+    @apply sm:mt-10 mt-5;
+  }
+
+  header img {
+    @apply w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md;
+  }
+}
+
+/* Components Layer */
+@layer components {
+  .pattern {
+    @apply w-full h-screen bg-center bg-cover absolute z-0;
+    background-image: url('/hero-bg.png');
+  }
+
+  .wrapper {
+    @apply px-5 py-12 sm:px-10 max-w-7xl mx-auto flex flex-col relative z-10;
+
+  }
+
+  .trending {
+    @apply mt-20;
+  }
+
+  .trending ul {
+    @apply flex flex-row overflow-y-auto gap-0 -mt-10 w-full hide-scrollbar;
+  }
+
+  .trending ul li {
+    @apply min-w-[230px] flex flex-row items-center;
+  }
+
+  .trending ul li p {
+    @apply text-gradient mt-[22px] whitespace-nowrap;
+  }
+
+  .trending ul li img {
+    @apply w-[127px] h-[163px] rounded-lg object-cover -ml-3.5;
+  }
+
+  .search {
+    @apply w-full bg-white/5 px-4 py-3 rounded-lg mt-10 max-w-3xl mx-auto;
+  }
+
+  .search div {
+    @apply relative flex items-center;
+  }
+
+  .search img {
+    @apply absolute left-2 h-5 w-5;
+  }
+
+  .search input {
+    @apply w-full bg-transparent py-2 sm:pr-10 pl-10 text-base text-gray-200 placeholder-gray-400 outline-none;
+  }
+
+  .all-movies {
+    @apply space-y-9;
+  }
+
+  .all-movies ul {
+  @apply grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+}
+
+
+  .movie-card {
+    @apply bg-[#0f0d23] p-5 rounded-2xl shadow-inner shadow-white/10;
+  }
+
+  .movie-card img {
+    @apply rounded-lg h-auto w-full;
+  }
+
+  .movie-card h3 {
+    @apply text-white font-bold text-base line-clamp-1;
+  }
+
+  .movie-card .content {
+    @apply mt-2 flex flex-row items-center flex-wrap gap-2;
+  }
+
+  .movie-card .rating {
+    @apply flex flex-row items-center gap-1;
+  }
+
+  .movie-card .rating img {
+    @apply w-4 h-4 object-contain;
+  }
+
+  .movie-card .rating p {
+    @apply font-bold text-base text-white;
+  }
+
+  .movie-card .content span {
+    @apply text-sm text-gray-400;
+  }
+
+  .movie-card .lang {
+    @apply capitalize text-gray-400 font-medium text-base;
+  }
+
+  .movie-card .year {
+    @apply text-gray-400 font-medium text-base;
+  }
+  /* In App.css or global CSS */
+.movies-grid {
+  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4;
+}
+
+}
+
+/* Utilities Layer */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-[#D6C7FF] to-[#AB8BFF] bg-clip-text text-transparent;
+  }
+
+  .fancy-text {
+    -webkit-text-stroke: 5px rgba(206, 206, 251, 0.5);
+    font-size: 190px;
+    font-family: "Bebas Neue", sans-serif;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+.text-gradient {
+  background: linear-gradient(90deg, #ff6ec4, #7873f5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
