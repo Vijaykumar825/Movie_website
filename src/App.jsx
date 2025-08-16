@@ -4,106 +4,84 @@ import Spinner from "./components/Spinner";
 import "./App.css";
 import MovieCard from "./components/MovieCard";
 import { useDebounce } from "react-use";
-import { updateSearchCount, getTrendingMovies } from "./appwrite.js";
+import { updateSearchCount, getTrendingMovies } from "./appwrite.js"; // Import the function to update search count
 
-// --- Constants ---
-// It's good practice to keep constants at the top level.
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+//onsole.log("API_KEY:", API_KEY); // Debugging line to check if API_KEY is loaded correctly
 
-// --- Main App Component ---
+const API_OPTIONS = {
+  method: "GET",
+  headers: {
+    accept: "application/json",
+    Authorization: `Bearer ${API_KEY}`,
+  },
+};
+
 function App() {
-  // --- State Management ---
   const [searchTerm, setSearchTerm] = useState("");
-  const [moviesList, setMoviesList] = useState([]);
-  const [trendingMovies, setTrendingMovies] = useState([]);
-  const [isLoading, setLoading] = useState(true); // Start with loading true for initial fetch
   const [errorMessage, setErrorMessage] = useState("");
+  const [moviesList, setMoviesList] = useState([]);
+  const [isLoading, setLoading] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState();
+  const [trendingMovies, setTrendingMovies] = useState([]);
+  useDebounce(
+    () => {
+      setDebouncedSearchTerm(searchTerm);
+    },
+    500, // 500ms debounce time
+    [searchTerm]
+  );
 
-  // --- Debouncing ---
-  // This is a more direct way to use the useDebounce hook.
-  // It returns the debounced value directly, simplifying state.
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-
-  // --- API Fetching Logic ---
-  const fetchMovies = async (query) => {
-    // Clear previous results and errors before a new fetch
+  const fetchMovies = async (query = "") => {
     setLoading(true);
-    setErrorMessage("");
-    setMoviesList([]);
-
-    // Check if the API key is available. This is a common setup issue.
-    if (!API_KEY) {
-      setErrorMessage("API Key is missing. Please check your .env file.");
-      setLoading(false);
-      return;
-    }
-
-    // Define API options inside the function or pass the key securely
-    const API_OPTIONS = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-    };
-
+    setErrorMessage(""); // Reset error message
     try {
-      // Determine the correct API endpoint based on whether there's a search query
       const endpoint = query
         ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
         : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
-
       const response = await fetch(endpoint, API_OPTIONS);
       if (!response.ok) {
-        // Provide a more specific error message if possible
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error("Failed to fetch movies");
       }
       const data = await response.json();
-
       if (!data.results || data.results.length === 0) {
-        setErrorMessage(`No movies found for "${query}"`);
+        setErrorMessage("No movies found");
+        setMoviesList([]);
       } else {
         setMoviesList(data.results);
-        // If it was a search, update the search count in your backend
-        if (query) {
-          await updateSearchCount(query, data.results[0]);
-        }
+      }
+      if (query && data.results.length > 0) {
+        // If a search term is provided and movies are found, update the search count
+        await updateSearchCount(query, data.results[0]); // Update with the first movie found
       }
     } catch (error) {
       console.error("Error fetching movies:", error);
       setErrorMessage("Failed to fetch movies. Please try again later.");
     } finally {
-      // This ensures the loading spinner is turned off after the fetch is complete
-      setLoading(false);
+      setLoading(false); // ✅ Important: turn off loading state
     }
   };
-
-  const loadTrendingMovies = async () => {
+  const loadtrendingMovies = async () => {
     try {
       const movies = await getTrendingMovies();
       setTrendingMovies(movies);
     } catch (error) {
       console.error("Error fetching trending movies:", error);
-      // Optionally set an error message for trending movies as well
     }
   };
-
-  // --- Effects ---
-  // This single useEffect handles all movie fetching logic.
   useEffect(() => {
-    if (debouncedSearchTerm) {
-      // If the user is searching, fetch movies based on their query
-      setTrendingMovies([]); // Clear trending movies when searching
-      fetchMovies(debouncedSearchTerm);
-    } else {
-      // If the search bar is empty, load the default popular movies and trending list
-      fetchMovies(""); // Fetch popular movies for the main list
-      loadTrendingMovies();
-    }
-  }, [debouncedSearchTerm]); // Re-run whenever the debounced search term changes
+    fetchMovies(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
-  // --- Render Method ---
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      loadtrendingMovies();
+    } else {
+      setTrendingMovies([]); // Clear trending list if searching
+    }
+  }, [searchTerm]);
+
   return (
     <main>
       <div className="pattern" />
@@ -116,9 +94,7 @@ function App() {
           </h1>
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
-
-        {/* Show Trending Movies only when not searching */}
-        {trendingMovies.length > 0 && !searchTerm && (
+        {trendingMovies.length > 0 && (
           <section className="mt-8">
             <h2 className="text-2xl font-bold mb-6">Trending Movies</h2>
             <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
@@ -133,12 +109,14 @@ function App() {
                   <img
                     src={
                       movie.poster_url ||
-                      "https://placehold.co/200x300/1a1a1a/ffffff?text=No+Image"
+                      "https://via.placeholder.com/100x150?text=No+Image"
                     }
                     alt={movie.title}
                     className="z-10 w-full rounded shadow-lg"
                   />
-                  <p className="mt-2 text-sm text-white font-medium z-10 text-center">
+                  <p className="mt-2 text-sm text-white font-medium z-10">
+                    {index + 1}
+                    <span>.</span>
                     {movie.title}
                   </p>
                 </li>
@@ -147,17 +125,14 @@ function App() {
           </section>
         )}
 
-        {/* Main Movie List (Search Results or Popular) */}
-        <section className="all-movies mt-10">
-          <h2 className="text-2xl font-bold mb-6">
-            {searchTerm ? `Results for "${searchTerm}"` : "Popular Movies"}
-          </h2>
+        <section className="all-movies">
+          <h2 className="mt-[40px]">All Movies</h2>
           {isLoading ? (
             <Spinner />
           ) : errorMessage ? (
-            <p className="text-red-500 text-center">{errorMessage}</p>
+            <p className="text-red-500">{errorMessage}</p>
           ) : (
-            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+            <ul>
               {moviesList.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
